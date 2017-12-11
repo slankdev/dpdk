@@ -1176,10 +1176,14 @@ rte_mempool_dump(FILE *f, struct rte_mempool *mp)
 
 	fprintf(f, "mempool <%s>@%p\n", mp->name, mp);
 	fprintf(f, "  flags=%x\n", mp->flags);
+	fprintf(f, "  socket_id=%d\n", mp->socket_id);
 	fprintf(f, "  pool=%p\n", mp->pool_data);
 	fprintf(f, "  phys_addr=0x%" PRIx64 "\n", mp->mz->phys_addr);
 	fprintf(f, "  nb_mem_chunks=%u\n", mp->nb_mem_chunks);
 	fprintf(f, "  size=%"PRIu32"\n", mp->size);
+	fprintf(f, "    in_use=%u\n", rte_mempool_in_use_count(mp));
+	fprintf(f, "    full=%s\n", rte_mempool_full(mp)==1?"yes":"no");
+	fprintf(f, "    avail_cnt=%u\n", rte_mempool_avail_count(mp));
 	fprintf(f, "  populated_size=%"PRIu32"\n", mp->populated_size);
 	fprintf(f, "  header_size=%"PRIu32"\n", mp->header_size);
 	fprintf(f, "  elt_size=%"PRIu32"\n", mp->elt_size);
