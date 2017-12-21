@@ -1251,6 +1251,28 @@ rte_mempool_list_dump(FILE *f)
 	rte_rwlock_read_unlock(RTE_EAL_MEMPOOL_RWLOCK);
 }
 
+/* get the all mempools pointer */
+uint32_t
+rte_mempool_list_get(struct rte_mempool* mps[], uint32_t n_mps)
+{
+	struct rte_mempool_list *mempool_list =
+		RTE_TAILQ_CAST(rte_mempool_tailq.head, rte_mempool_list);
+	rte_rwlock_read_lock(RTE_EAL_MEMPOOL_RWLOCK);
+
+	uint32_t i=0;
+	struct rte_tailq_entry *te;
+	TAILQ_FOREACH(te, mempool_list, next) {
+		struct rte_mempool *mp = (struct rte_mempool *) te->data;
+		if (i>=n_mps) {
+			break;
+		}
+		mps[i] = mp;
+		i++;
+	}
+	rte_rwlock_read_unlock(RTE_EAL_MEMPOOL_RWLOCK);
+	return i;
+}
+
 /* search a mempool from its name */
 struct rte_mempool *
 rte_mempool_lookup(const char *name)

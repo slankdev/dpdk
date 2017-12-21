@@ -1438,6 +1438,18 @@ static inline void *rte_mempool_get_priv(struct rte_mempool *mp)
 void rte_mempool_list_dump(FILE *f);
 
 /**
+ * Get the all mempools pointer
+ *
+ * @param mps
+ *   A pointer to the mempool structures array.
+ * @param n_mps
+ *   buffer length
+ * @return
+ *   number of mempools
+ */
+uint32_t rte_mempool_list_get(struct rte_mempool* mps[], uint32_t n_mps);
+
+/**
  * Search a mempool from its name
  *
  * @param name
