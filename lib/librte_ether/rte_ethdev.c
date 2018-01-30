@@ -3409,3 +3409,103 @@ rte_eth_dev_adjust_nb_rx_tx_desc(uint8_t port_id,
 
 	return 0;
 }
+
+
+#define SLANKDEV_PATCH /* SLANKDEV Original Patch */
+#ifdef SLANKDEV_PATCH
+
+static uint8_t
+rte_eth_dev_find_free_port_slank(void)
+{
+	printf("SLANKDEV YUKARIBONK slank\n");
+	unsigned i;
+
+	for (i = RTE_MAX_ETHPORTS-1; i > (RTE_MAX_ETHPORTS-20); i--) {
+		if (rte_eth_devices[i].state == RTE_ETH_DEV_UNUSED)
+			return i;
+		printf("pid=%u is not unused\n", i);
+	}
+	printf("not suspose.\n");
+	exit(1);
+	return 0;
+}
+
+int
+rte_eth_dev_attach_slank(const char *devargs, uint8_t* port_id)
+{
+	int ret = -1;
+	int current = rte_eth_dev_count();
+	char *name = NULL;
+	char *args = NULL;
+
+	if ((devargs == NULL) || (port_id == NULL)) {
+		ret = -EINVAL;
+		goto err;
+	}
+
+	/* parse devargs, then retrieve device name and args */
+	if (rte_eal_parse_devargs_str(devargs, &name, &args))
+		goto err;
+
+	printf("DEBUG name: %s \n", name);
+	printf("DEBUG args: %s \n", args);
+	ret = rte_eal_dev_attach(name, args);
+	if (ret < 0)
+		goto err;
+
+	/* no point looking at the port count if no port exists */
+	if (!rte_eth_dev_count()) {
+		RTE_LOG(ERR, EAL, "No port found for device (%s)\n", name);
+		ret = -1;
+		goto err;
+	}
+
+	/* if nothing happened, there is a bug here, since some driver told us
+	 * it did attach a device, but did not create a port.
+	 */
+	if (current == rte_eth_dev_count()) {
+		ret = -1;
+		goto err;
+	}
+
+	*port_id = eth_dev_last_created_port;
+	ret = 0;
+
+err:
+	free(name);
+	free(args);
+	return ret;
+}
+
+struct rte_eth_dev *
+rte_eth_dev_allocate_slank(const char *name)
+{
+	uint8_t port_id;
+	struct rte_eth_dev *eth_dev;
+
+	port_id = rte_eth_dev_find_free_port_slank();
+	if (port_id == RTE_MAX_ETHPORTS) {
+		RTE_PMD_DEBUG_TRACE("Reached maximum number of Ethernet ports\n");
+		return NULL;
+	}
+
+	if (rte_eth_dev_data == NULL)
+		rte_eth_dev_data_alloc();
+
+	if (rte_eth_dev_allocated(name) != NULL) {
+		RTE_PMD_DEBUG_TRACE("Ethernet Device with name %s already allocated!\n",
+				name);
+		return NULL;
+	}
+
+	memset(&rte_eth_dev_data[port_id], 0, sizeof(struct rte_eth_dev_data));
+	eth_dev = eth_dev_get(port_id);
+	snprintf(eth_dev->data->name, sizeof(eth_dev->data->name), "%s", name);
+	eth_dev->data->port_id = port_id;
+	eth_dev->data->mtu = ETHER_MTU;
+
+	return eth_dev;
+}
+#endif /* ifdef SLANKDEV_PATCH */
+
+

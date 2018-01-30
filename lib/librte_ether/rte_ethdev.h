@@ -4436,6 +4436,36 @@ int rte_eth_dev_adjust_nb_rx_tx_desc(uint8_t port_id,
 				     uint16_t *nb_rx_desc,
 				     uint16_t *nb_tx_desc);
 
+
+#define SLANKDEV_PATCH /* SLANKDEV Original Patch */
+#ifdef SLANKDEV_PATCH
+/**
+ * @internal
+ * Allocates a new ethdev slot for an ethernet device and returns the pointer
+ * to that slot for the driver to use.
+ *
+ * @param	name	Unique identifier name for each Ethernet device
+ * @param	type	Device type of this Ethernet device
+ * @return
+ *   - Slot in the rte_dev_devices array for a new device;
+ */
+struct rte_eth_dev *rte_eth_dev_allocate_slank(const char *name);
+
+/**
+ * Attach a new Ethernet device specified by arguments.
+ *
+ * @param devargs
+ *  A pointer to a strings array describing the new device
+ *  to be attached. The strings should be a pci address like
+ *  '0000:01:00.0' or virtual device name like 'net_pcap0'.
+ * @param port_id_required
+ *  request port id
+ * @return
+ *  0 on success and port_id is filled, negative on error
+ */
+int rte_eth_dev_attach_slank(const char *devargs, uint8_t* port_id);
+#endif /* ifdef SLANKDEV_PATCH */
+
 #ifdef __cplusplus
 }
 #endif
